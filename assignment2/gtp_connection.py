@@ -276,7 +276,7 @@ class GtpConnection:
     """
 
     def timelimit_cmd(self, args):
-        if args[0] <= 100 and args[0] >= 1:
+        if int(args[0]) <= 100 and int(args[0]) >= 1:
             self.seconds = args[0]
 
     def gogui_rules_final_result_cmd(self, args):
@@ -345,6 +345,7 @@ class GtpConnection:
 
     def solve_cmd(self, args):
         # remove this respond and implement this method
+        winning_moves = []
         try:
             signal.signal(signal.SIGALRM, self.time_handler)
             signal.alarm(self.seconds)
@@ -352,7 +353,7 @@ class GtpConnection:
             copy_board = self.board
             self.solve_helper(copy_board)
             legal_moves = GoBoardUtil.generate_legal_moves([copy_board, copy_board.current_player])
-            winning_moves = []
+            
             
             if len(legal_moves) <= 0:
                 return winning_moves
