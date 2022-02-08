@@ -359,7 +359,7 @@ class GtpConnection:
                 return winning_moves
                 
             for lm in legal_moves:
-                self.play_cmd([int_to_color(copy_board.current_player), lm])
+                self.play_cmd([int_to_color(copy_board.current_player), format_point(lm)])
                 copy_board.current_player = GoBoardUtil.opponent(copy_board.current_player)
                 success = not self.solve_helper(copy_board)
                 copy_board.board[lm] = EMPTY
@@ -390,7 +390,7 @@ class GtpConnection:
         if len(legal_moves) <= 0:
             return False
         for lm in legal_moves:
-            self.play_cmd([int_to_color(boardCp.current_player), lm])
+            self.play_cmd([int_to_color(boardCp.current_player), format_point(lm)])
             boardCp.current_player = GoBoardUtil.opponent(boardCp.current_player)
             success = not self.solve_helper(boardCp)
             boardCp.board[lm] = EMPTY
