@@ -327,10 +327,14 @@ class GtpConnection:
         # change this method to use your solver
         board_color = args[0].lower()
         color = color_to_int(board_color)
-        move = self.go_engine.get_move(self.board, color)
-        if move is None:
-            self.respond('unknown')
-            return
+        win_move_list = self.solve_cmd(args)
+        if not win_move_list:
+            move = self.go_engine.get_move(self.board, color)
+            if move is None:
+                self.respond('unknown')
+                return
+        else:
+            move = win_move_list[0]
         move_coord = point_to_coord(move, self.board.size)
         move_as_string = format_point(move_coord)
         if self.board.is_legal(move, color):
@@ -371,7 +375,7 @@ class GtpConnection:
         
         except:
             if not winning_moves:
-                self.respond("{}".format( int_to_color(self.current_player)) )
+                self.respond("unknown")
             else:
                 self.respond("{} {}".format( int_to_color(self.current_player)), format_point(winning_moves[0]) )
             return winning_moves
