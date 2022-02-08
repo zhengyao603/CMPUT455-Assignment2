@@ -340,16 +340,44 @@ class GtpConnection:
 
     def solve_cmd(self, args):
         # remove this respond and implement this method
-        self.copy_board = self.board
-        self.solve_helper(self.copy_board)
-        self.respond('Implement This for Assignment 2')
+        copy_board = self.board
+        self.solve_helper(copy_board)
+        legal_moves = GoBoardUtil.generate_legal_moves([copy_board, copy_board.current_player])
+        winning_moves = []
+        
+        if len(legal_moves) <= 0:
+            return winning_moves
+            
+        for lm in legal_moves:
+            self.play_cmd([int_to_color(copy_board.current_player), lm])
+            copy_board.current_player = GoBoardUtil.opponent(copy_board.current_player)
+            success = not solve_helper(copy_board)
+            copy_board.board[lm] = EMPTY
+            if success:
+                winning_moves.append(lm)
+        
+        
 
-    def solve_helper(self, args):
-        legal_moves = GoBoardUtil.generate_legal_moves(args[0], args[0].current_player)
+        if not winning_moves:
+            self.respond("{}".format( int_to_color(self.current_player)) )
+        else:
+            self.respond("{} {}".format( int_to_color(self.current_player)), format_point(winning_moves[0]) )
+        
+        return winning_moves
+
+    def solve_helper(self, boardCp):
+        legal_moves = GoBoardUtil.generate_legal_moves(boardCp, boardCp.current_player)
         if len(legal_moves) <= 0:
             return False
         for lm in legal_moves:
-            self.
+            self.play_cmd([int_to_color(boardCp.current_player), lm])
+            boardCp.current_player = GoBoardUtil.opponent(boardCp.current_player)
+            success = not solve_helper(boardCp)
+            boardCp.board[lm] = EMPTY
+            if success:
+                return True
+        return False
+
             
     """
     ==========================================================================
@@ -416,3 +444,8 @@ def color_to_int(c):
     """convert character to the appropriate integer code"""
     color_to_int = {"b": BLACK, "w": WHITE, "e": EMPTY, "BORDER": BORDER}
     return color_to_int[c]
+
+def int_to_color(i):
+    """convert character to the appropriate integer code"""
+    int_to_color = {BLACK: "b",  WHITE: "w", EMPTY: "e", BORDER: "BORDER"}
+    return int_to_color[i]
