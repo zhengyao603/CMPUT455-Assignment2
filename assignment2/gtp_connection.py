@@ -331,7 +331,7 @@ class GtpConnection:
         if not win_move_list:
             move = self.go_engine.get_move(self.board, color)
             if move is None:
-                self.respond('unknown')
+                self.respond('resign')
                 return
         else:
             move = win_move_list[0]
