@@ -34,6 +34,7 @@ class GtpConnection:
         board: 
             Represents the current board state.
         """
+        self.seconds = 1
         self._debug_mode = debug_mode
         self.go_engine = go_engine
         self.board = board
@@ -52,7 +53,8 @@ class GtpConnection:
             "play": self.play_cmd,
             "gogui-rules_legal_moves":self.gogui_rules_legal_moves_cmd,
             "gogui-rules_final_result":self.gogui_rules_final_result_cmd,
-            "solve":self.solve_cmd
+            "solve":self.solve_cmd,
+            "timelimit":self.timelimit_cmd,
         }
 
         # used for argument checking
@@ -65,6 +67,7 @@ class GtpConnection:
             "genmove": (1, "Usage: genmove {w,b}"),
             "play": (2, "Usage: play {b,w} MOVE"),
             "legal_moves": (1, "Usage: legal_moves {w,b}"),
+            "timelimit": (1, "Usage: timelimit INT"),
         }
 
     def write(self, data):
@@ -270,6 +273,11 @@ class GtpConnection:
     Assignment 2 - game-specific commands you have to implement or modify
     ==========================================================================
     """
+
+    def timelimit_cmd(self, args):
+        if args[0] <= 100 and args[0] >= 1:
+            self.seconds = args[0]
+
     def gogui_rules_final_result_cmd(self, args):
         # implement this method correctly
         legal_moves = GoBoardUtil.generate_legal_moves(self.board, self.board.current_player)
@@ -332,7 +340,17 @@ class GtpConnection:
 
     def solve_cmd(self, args):
         # remove this respond and implement this method
+        self.copy_board = self.board
+        self.solve_helper(self.copy_board)
         self.respond('Implement This for Assignment 2')
+
+    def solve_helper(self, args):
+        legal_moves = GoBoardUtil.generate_legal_moves(args[0], args[0].current_player)
+        if len(legal_moves) <= 0:
+            return False
+        for lm in legal_moves:
+            self.
+            
     """
     ==========================================================================
     Assignment 2 - game-specific commands end here
