@@ -327,6 +327,38 @@ class GtpConnection:
             self.respond()
         except Exception as e:
             self.respond("Error: {}".format(str(e)))
+            
+    def try_to_play(self, args):
+        """
+        play a move args[1] for given color args[0] in {'b','w'}
+        """
+        # change this method to use your solver
+        try:
+            board_color = args[0].lower()
+            board_move = args[1]
+            color = color_to_int(board_color)
+            if args[1].lower() == "pass":
+                self.respond('illegal move')
+                return
+            coord = move_to_coord(args[1], self.board.size)
+            if coord:
+                move = coord_to_point(coord[0], coord[1], self.board.size)
+            else:
+                self.error(
+                    "Error executing move {} converted from {}".format(move, args[1])
+                )
+                return
+            success = self.board.play_move(move, color)
+            if not success:
+                self.respond('illegal move')
+                return
+            else:
+                self.debug_msg(
+                    "Move: {}\nBoard:\n{}\n".format(board_move, self.board2d())
+                )
+#            self.respond()
+        except Exception as e:
+            self.respond("Error: {}".format(str(e)))
 
     def genmove_cmd(self, args):
         """ generate a move for color args[0] in {'b','w'} """
@@ -366,7 +398,7 @@ class GtpConnection:
                 
             for lm in legal_moves:
                 self.board = copy_board
-                self.play_cmd([int_to_color(copy_board.current_player), format_point(point_to_coord(lm, self.board.size))])
+                self.try_to_play([int_to_color(copy_board.current_player), format_point(point_to_coord(lm, self.board.size))])
                 success = not self.solve_helper()
                 copy_board.board[lm] = EMPTY
                 if success:
@@ -396,7 +428,7 @@ class GtpConnection:
         if len(legal_moves) <= 0:
             return False
         for lm in legal_moves:
-            self.play_cmd([int_to_color(self.board.current_player), format_point(point_to_coord(lm, self.board.size))])
+            self.try_to_play([int_to_color(self.board.current_player), format_point(point_to_coord(lm, self.board.size))])
             success = not self.solve_helper()
             self.board.board[lm] = EMPTY
             if success:
