@@ -275,9 +275,9 @@ class GtpConnection:
     ==========================================================================
     """
 
-    def timelimit_cmd(self, args):
-        if int(args[0]) <= 100 and int(args[0]) >= 1:
-            self.seconds = args[0]
+    def timelimit_cmd(self, sec):
+        if int(sec) <= 100 and int(sec) >= 1:
+            self.seconds = sec
     
     def time_handler(self, signum, frame):
         signal.alarm(0)
