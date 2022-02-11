@@ -283,7 +283,7 @@ class GtpConnection:
     
     def time_handler(self, signum, frame):
         signal.alarm(0)
-        raise Exception("time up")
+        raise Exception("time up!!!")
 
     def gogui_rules_final_result_cmd(self, args):
         # implement this method correctly
@@ -358,14 +358,15 @@ class GtpConnection:
                 )
 #            self.respond()
         except Exception as e:
-            self.respond("Error: {}".format(str(e)))
+            # self.respond("Error: {}".format(str(e)))
+            raise Exception("1111 time up!!!")
 
     def genmove_cmd(self, args):
         """ generate a move for color args[0] in {'b','w'} """
         # change this method to use your solver
         board_color = args[0].lower()
         color = color_to_int(board_color)
-        win_move_list = self.solve_cmd(args)
+        win_move_list = self.solve_cmd(args, False)
         if not win_move_list:
             move = self.go_engine.get_move(self.board, color)
             if move is None:
@@ -381,7 +382,7 @@ class GtpConnection:
         else:
             self.respond("Illegal move: {}".format(move_as_string))
 
-    def solve_cmd(self, args):
+    def solve_cmd(self, args, responds = True):
         # remove this respond and implement this method
         winning_moves = []
         try:
@@ -392,7 +393,7 @@ class GtpConnection:
             self.init_board = self.board.copy()
             legal_moves = GoBoardUtil.generate_legal_moves(copy_board, copy_board.current_player)
             
-            if len(legal_moves) <= 0:
+            if len(legal_moves) <= 0 and responds:
                 self.respond("{}".format(int_to_color(GoBoardUtil.opponent(self.board.current_player))))
                 return winning_moves
                 
@@ -408,19 +409,21 @@ class GtpConnection:
             signal.alarm(0)
             self.board = self.init_board
             self.init_board = None
-            if not winning_moves:
-                self.respond("{}".format(int_to_color(GoBoardUtil.opponent(self.board.current_player))))
-            else:
-                self.respond("{} {}".format(int_to_color(self.board.current_player), format_point(point_to_coord(winning_moves[0], self.board.size))))
+            if responds:
+                if not winning_moves:
+                    self.respond("{}".format(int_to_color(GoBoardUtil.opponent(self.board.current_player))))
+                else:
+                    self.respond("{} {}".format(int_to_color(self.board.current_player), format_point(point_to_coord(winning_moves[0], self.board.size)).lower()))
             return winning_moves
         
         except Exception as e:
             self.board = self.init_board
             self.init_board = None
-            if not winning_moves:
-                self.respond("unknown")
-            else:
-                self.respond("{} {}".format(int_to_color(self.board.current_player), format_point(point_to_coord(winning_moves[0], self.board.size))))
+            if responds:
+                if not winning_moves:
+                    self.respond("unknown")
+                else:
+                    self.respond("{} {}".format(int_to_color(self.board.current_player), format_point(point_to_coord(winning_moves[0], self.board.size)).lower()))
             return winning_moves
 
     def solve_helper(self):
