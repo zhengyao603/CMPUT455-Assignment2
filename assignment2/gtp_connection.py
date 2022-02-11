@@ -275,9 +275,11 @@ class GtpConnection:
     ==========================================================================
     """
 
-    def timelimit_cmd(self, sec):
-        if int(sec) <= 100 and int(sec) >= 1:
-            self.seconds = sec
+    def timelimit_cmd(self, args):
+        time = int(args[0])
+        if time <= 100 and time >= 1:
+            self.seconds = time
+            self.respond(time)
     
     def time_handler(self, signum, frame):
         signal.alarm(0)
@@ -364,38 +366,39 @@ class GtpConnection:
                 
             for lm in legal_moves:
                 self.board = copy_board
-                self.play_cmd([int_to_color(copy_board.current_player), format_point(lm)])
-                success = not self.solve_helper(copy_board)
+                self.play_cmd([int_to_color(copy_board.current_player), format_point(point_to_coord(lm, self.board.size))])
+                success = not self.solve_helper()
                 copy_board.board[lm] = EMPTY
                 if success:
                     winning_moves.append(lm)
                     break
             
             signal.alarm(0)
+            self.board = self.init_board
+            self.init_board = None
             if not winning_moves:
                 self.respond("{}".format(int_to_color(GoBoardUtil.opponent(self.board.current_player))))
             else:
-                self.respond("{} {}".format(int_to_color(self.current_player)), format_point(winning_moves[0]))
+                self.respond("{} {}".format(int_to_color(self.board.current_player), format_point(point_to_coord(winning_moves[0], self.board.size))))
             return winning_moves
         
-        except:
+        except Exception as e:
             self.board = self.init_board
             self.init_board = None
             if not winning_moves:
                 self.respond("unknown")
             else:
-                self.respond("{} {}".format(int_to_color(self.current_player)), format_point(winning_moves[0]))
+                self.respond("{} {}".format(int_to_color(self.board.current_player), format_point(point_to_coord(winning_moves[0], self.board.size))))
             return winning_moves
 
-    def solve_helper(self, boardCp):
-        legal_moves = GoBoardUtil.generate_legal_moves(boardCp, boardCp.current_player)
+    def solve_helper(self):
+        legal_moves = GoBoardUtil.generate_legal_moves(self.board, self.board.current_player)
         if len(legal_moves) <= 0:
             return False
         for lm in legal_moves:
-            self.play_cmd([int_to_color(boardCp.current_player), format_point(lm)])
-            boardCp.current_player = GoBoardUtil.opponent(boardCp.current_player)
-            success = not self.solve_helper(boardCp)
-            boardCp.board[lm] = EMPTY
+            self.play_cmd([int_to_color(self.board.current_player), format_point(point_to_coord(lm, self.board.size))])
+            success = not self.solve_helper()
+            self.board.board[lm] = EMPTY
             if success:
                 return True
         return False
