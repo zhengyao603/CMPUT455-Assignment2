@@ -274,6 +274,8 @@ class GtpConnection:
     Assignment 2 - game-specific commands you have to implement or modify
     ==========================================================================
     """
+    tt = TranspositionTable()
+
 
     def timelimit_cmd(self, args):
         time = int(args[0])
@@ -393,6 +395,12 @@ class GtpConnection:
             self.init_board = self.board.copy()
             legal_moves = GoBoardUtil.generate_legal_moves(copy_board, copy_board.current_player)
             
+            result = tt.lookup(copy_board.board)
+            if result != None:
+                self.respond("{} {}".format(int_to_color(self.board.current_player), format_point(point_to_coord(result, self.board.size)).lower()))
+                signal.alarm(0)
+                return result
+                
             if len(legal_moves) <= 0 and responds:
                 self.respond("{}".format(int_to_color(GoBoardUtil.opponent(self.board.current_player))))
                 return winning_moves
@@ -404,6 +412,7 @@ class GtpConnection:
                 copy_board.board[lm] = EMPTY
                 if success:
                     winning_moves.append(lm)
+                    tt.store(copy_board.board, winning_moves)
                     break
             
             signal.alarm(0)
@@ -435,8 +444,35 @@ class GtpConnection:
             success = not self.solve_helper()
             self.board.board[lm] = EMPTY
             if success:
+            ####
                 return True
         return False
+        
+        
+    class TranspositionTable:
+        def __init__(self):
+            self.table = {}
+            
+        def store(self, array, score):
+            s = []
+            for number in array:
+                if number != 3:
+                    s.append(number)
+            code = self.code(s)
+            self.table[code] = score
+            
+        def code(self, array)
+            code = array[0]
+            for i in range(len(array) - 1):
+                code = code ^ array[i+1]
+            return code
+            
+        def lookup(self, array):
+            code = code(array)
+            return self.table[code]
+                
+        
+                    
 
             
     """
