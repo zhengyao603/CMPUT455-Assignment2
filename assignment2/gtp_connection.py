@@ -22,6 +22,30 @@ import numpy as np
 import re
 import signal
 
+
+class TranspositionTable:
+    def __init__(self):
+        self.table = {}
+        
+    def store(self, array, data):
+        s = []
+        for number in array:
+            if number != 3:
+                s.append(number)
+        code = self.code(s)
+        self.table[code] = data
+        
+    def code(self, array):
+        code = array[0]
+        for i in range(1, len(array)):
+            code = array[i] ^ code
+        return code
+        
+    def lookup(self, array):
+        code = code(array)
+        return self.table.get(code) #return value or None
+    
+
 class GtpConnection:
     def __init__(self, go_engine, board, debug_mode=False):
         """
@@ -39,6 +63,7 @@ class GtpConnection:
         self.go_engine = go_engine
         self.board = board
         self.init_board = None
+        self.tt = TranspositionTable()
         self.commands = {
             "protocol_version": self.protocol_version_cmd,
             "quit": self.quit_cmd,
@@ -274,8 +299,6 @@ class GtpConnection:
     Assignment 2 - game-specific commands you have to implement or modify
     ==========================================================================
     """
-    tt = TranspositionTable()
-
 
     def timelimit_cmd(self, args):
         time = int(args[0])
@@ -395,7 +418,7 @@ class GtpConnection:
             self.init_board = self.board.copy()
             legal_moves = GoBoardUtil.generate_legal_moves(copy_board, copy_board.current_player)
             
-            result = tt.lookup(copy_board.board)
+            result = self.tt.lookup(copy_board.board)
             if result != None:
                 self.respond("{} {}".format(int_to_color(self.board.current_player), format_point(point_to_coord(result, self.board.size)).lower()))
                 signal.alarm(0)
@@ -412,9 +435,15 @@ class GtpConnection:
                 copy_board.board[lm] = EMPTY
                 if success:
                     winning_moves.append(lm)
-                    tt.store(copy_board.board, winning_moves)
+                    self.tt.store(copy_board.board, winning_moves)
+                    
+                    ##
+                    self.respond(self.tt.table)
+                    ##
                     break
-            
+            ##
+            self.respond(self.tt.table)
+            ##
             signal.alarm(0)
             self.board = self.init_board
             self.init_board = None
@@ -426,6 +455,10 @@ class GtpConnection:
             return winning_moves
         
         except Exception as e:
+            ##
+            self.respond(self.tt.table)
+            ##
+        
             self.board = self.init_board
             self.init_board = None
             if responds:
@@ -436,40 +469,32 @@ class GtpConnection:
             return winning_moves
 
     def solve_helper(self):
+        result = self.tt.lookup(self.board.board)
+        if result != None:
+            return result
+    
         legal_moves = GoBoardUtil.generate_legal_moves(self.board, self.board.current_player)
         if len(legal_moves) <= 0:
             return False
+            
+        winning_moves = []
         for lm in legal_moves:
             self.try_to_play([int_to_color(self.board.current_player), format_point(point_to_coord(lm, self.board.size))])
             success = not self.solve_helper()
             self.board.board[lm] = EMPTY
             if success:
-            ####
+                winning_moves.append(lm)
+                self.tt.store(self.board.board, winning_moves)
+                ##
+                self.respond(self.tt.table)
+                ##
+
                 return True
+                
+        self.tt.store(self.board.board, winning_moves)
         return False
         
-        
-    class TranspositionTable:
-        def __init__(self):
-            self.table = {}
-            
-        def store(self, array, score):
-            s = []
-            for number in array:
-                if number != 3:
-                    s.append(number)
-            code = self.code(s)
-            self.table[code] = score
-            
-        def code(self, array)
-            code = array[0]
-            for i in range(len(array) - 1):
-                code = code ^ array[i+1]
-            return code
-            
-        def lookup(self, array):
-            code = code(array)
-            return self.table.get(code) #return value or None
+    
                 
         
                     
@@ -499,13 +524,13 @@ def format_point(move):
     Return move coordinates as a string such as 'A1', or 'PASS'.
     """
     assert MAXSIZE <= 25
-    column_letters = "ABCDEFGHJKLMNOPQRSTUVWXYZ"
+    column_leself.tters = "ABCDEFGHJKLMNOPQRSTUVWXYZ"
     if move == PASS:
         return "PASS"
     row, col = move
     if not 0 <= row < MAXSIZE or not 0 <= col < MAXSIZE:
         raise ValueError
-    return column_letters[col - 1] + str(row)
+    return column_leself.tters[col - 1] + str(row)
 
 
 def move_to_coord(point_str, board_size):
