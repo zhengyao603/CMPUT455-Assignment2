@@ -36,10 +36,9 @@ class TranspositionTable:
         self.table[code] = data
         
     def code(self, array):
-        code = array[0]
-        for i in range(1, len(array)):
-            code = array[i] ^ code
-        return code
+        string = [str(i) for i in array]
+        string = "".join(string)
+        return string
         
     def lookup(self, array):
         code = self.code(array)
