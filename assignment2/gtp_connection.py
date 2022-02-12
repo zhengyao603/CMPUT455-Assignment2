@@ -469,7 +469,7 @@ class GtpConnection:
             
         def lookup(self, array):
             code = code(array)
-            return self.table[code]
+            return self.table.get(code) #return value or None
                 
         
                     
