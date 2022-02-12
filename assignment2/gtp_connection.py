@@ -42,7 +42,7 @@ class TranspositionTable:
         return code
         
     def lookup(self, array):
-        code = code(array)
+        code = self.code(array)
         return self.table.get(code) #return value or None
     
 
@@ -410,63 +410,56 @@ class GtpConnection:
     def solve_cmd(self, args, responds = True):
         # remove this respond and implement this method
         winning_moves = []
-        try:
-            signal.signal(signal.SIGALRM, self.time_handler)
-            signal.alarm(self.seconds)
+        # try:
+        signal.signal(signal.SIGALRM, self.time_handler)
+        signal.alarm(self.seconds)
 
-            copy_board = self.board.copy()
-            self.init_board = self.board.copy()
-            legal_moves = GoBoardUtil.generate_legal_moves(copy_board, copy_board.current_player)
-            
-            result = self.tt.lookup(copy_board.board)
-            if result != None:
-                self.respond("{} {}".format(int_to_color(self.board.current_player), format_point(point_to_coord(result, self.board.size)).lower()))
-                signal.alarm(0)
-                return result
-                
-            if len(legal_moves) <= 0 and responds:
+        copy_board = self.board.copy()
+        self.init_board = self.board.copy()
+        legal_moves = GoBoardUtil.generate_legal_moves(copy_board, copy_board.current_player)
+        
+        result = self.tt.lookup(copy_board.board)
+        if result != None:
+            if len(result)>0:
+                self.respond("{} {}".format(int_to_color(self.board.current_player), format_point(point_to_coord(result[0], self.board.size)).lower()))
+            else:
                 self.respond("{}".format(int_to_color(GoBoardUtil.opponent(self.board.current_player))))
-                return winning_moves
-                
-            for lm in legal_moves:
-                self.board = copy_board
-                self.try_to_play([int_to_color(copy_board.current_player), format_point(point_to_coord(lm, self.board.size))])
-                success = not self.solve_helper()
-                copy_board.board[lm] = EMPTY
-                if success:
-                    winning_moves.append(lm)
-                    self.tt.store(copy_board.board, winning_moves)
-                    
-                    ##
-                    self.respond(self.tt.table)
-                    ##
-                    break
-            ##
-            self.respond(self.tt.table)
-            ##
             signal.alarm(0)
-            self.board = self.init_board
-            self.init_board = None
-            if responds:
-                if not winning_moves:
-                    self.respond("{}".format(int_to_color(GoBoardUtil.opponent(self.board.current_player))))
-                else:
-                    self.respond("{} {}".format(int_to_color(self.board.current_player), format_point(point_to_coord(winning_moves[0], self.board.size)).lower()))
+            return result
+            
+        if len(legal_moves) <= 0 and responds:
+            self.respond("{}".format(int_to_color(GoBoardUtil.opponent(self.board.current_player))))
             return winning_moves
+            
+        for lm in legal_moves:
+            self.board = copy_board
+            self.try_to_play([int_to_color(copy_board.current_player), format_point(point_to_coord(lm, self.board.size))])
+            success = not self.solve_helper()
+            copy_board.board[lm] = EMPTY
+            if success:
+                winning_moves.append(lm)
+                self.tt.store(copy_board.board, winning_moves)
+                break
         
-        except Exception as e:
-            ##
-            self.respond(self.tt.table)
-            ##
+        signal.alarm(0)
+        self.board = self.init_board
+        self.init_board = None
+        if responds:
+            if not winning_moves:
+                self.respond("{}".format(int_to_color(GoBoardUtil.opponent(self.board.current_player))))
+            else:
+                self.respond("{} {}".format(int_to_color(self.board.current_player), format_point(point_to_coord(winning_moves[0], self.board.size)).lower()))
+        return winning_moves
         
-            self.board = self.init_board
-            self.init_board = None
-            if responds:
-                if not winning_moves:
-                    self.respond("unknown")
-                else:
-                    self.respond("{} {}".format(int_to_color(self.board.current_player), format_point(point_to_coord(winning_moves[0], self.board.size)).lower()))
-            return winning_moves
+        # except Exception as e:
+        #     self.board = self.init_board
+        #     self.init_board = None
+        #     if responds:
+        #         if not winning_moves:
+        #             self.respond("unknown")
+        #         else:
+        #             self.respond("{} {}".format(int_to_color(self.board.current_player), format_point(point_to_coord(winning_moves[0], self.board.size)).lower()))
+        #     return winning_moves
 
     def solve_helper(self):
         result = self.tt.lookup(self.board.board)
@@ -485,10 +478,6 @@ class GtpConnection:
             if success:
                 winning_moves.append(lm)
                 self.tt.store(self.board.board, winning_moves)
-                ##
-                self.respond(self.tt.table)
-                ##
-
                 return True
                 
         self.tt.store(self.board.board, winning_moves)
@@ -524,13 +513,13 @@ def format_point(move):
     Return move coordinates as a string such as 'A1', or 'PASS'.
     """
     assert MAXSIZE <= 25
-    column_leself.tters = "ABCDEFGHJKLMNOPQRSTUVWXYZ"
+    column_letters = "ABCDEFGHJKLMNOPQRSTUVWXYZ"
     if move == PASS:
         return "PASS"
     row, col = move
     if not 0 <= row < MAXSIZE or not 0 <= col < MAXSIZE:
         raise ValueError
-    return column_leself.tters[col - 1] + str(row)
+    return column_letters[col - 1] + str(row)
 
 
 def move_to_coord(point_str, board_size):
