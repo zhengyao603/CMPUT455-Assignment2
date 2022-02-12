@@ -483,6 +483,7 @@ class GtpConnection:
                 return True
                 
         self.tt.store(self.board.board, winning_moves)
+        self.respond(self.tt.table)
         return False
         
     
