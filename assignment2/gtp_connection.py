@@ -479,6 +479,7 @@ class GtpConnection:
             self.try_to_play([int_to_color(self.board.current_player), format_point(point_to_coord(lm, self.board.size))])
             success = not self.solve_helper()
             self.board.board[lm] = EMPTY
+            self.board.current_player = GoBoardUtil.opponent(self.board.current_player)
             if success:
                 winning_moves.append(lm)
                 self.tt.store(self.board.board, winning_moves)
