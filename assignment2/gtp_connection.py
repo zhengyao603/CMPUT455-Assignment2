@@ -330,7 +330,7 @@ class GtpConnection:
             board_move = args[1]
             color = color_to_int(board_color)
             if args[1].lower() == "pass":
-                self.respond('illegal move')
+                self.respond('illegal move1111')
                 return
             coord = move_to_coord(args[1], self.board.size)
             if coord:
@@ -342,7 +342,7 @@ class GtpConnection:
                 return
             success = self.board.play_move(move, color)
             if not success:
-                self.respond('illegal move')
+                self.respond('illegal move2222')
                 return
             else:
                 self.debug_msg(
@@ -362,7 +362,7 @@ class GtpConnection:
             board_move = args[1]
             color = color_to_int(board_color)
             if args[1].lower() == "pass":
-                self.respond('illegal move')
+                self.respond('illegal move3333')
                 return
             coord = move_to_coord(args[1], self.board.size)
             if coord:
@@ -374,7 +374,7 @@ class GtpConnection:
                 return
             success = self.board.play_move(move, color)
             if not success:
-                self.respond('illegal move')
+                self.respond('illegal move4444  {}-{}'.format(move, color))
                 return
             else:
                 self.debug_msg(
