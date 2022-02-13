@@ -22,17 +22,17 @@ import numpy as np
 import re
 import signal
 
-
 class TranspositionTable:
     def __init__(self):
         self.table = {}
+        self.use = 0
         
     def store(self, array, data):
-        s = []
-        for number in array:
-            if number != 3:
-                s.append(number)
-        code = self.code(s)
+        # s = []
+        # for number in array:
+        #     if number != 3:
+        #         s.append(number)
+        code = self.code(array)
         self.table[code] = data
         
     def code(self, array):
@@ -419,6 +419,7 @@ class GtpConnection:
             
             result = self.tt.lookup(copy_board.board)
             if result != None:
+                self.tt.use += 1
                 if len(result)>0:
                     self.respond("{} {}".format(int_to_color(self.board.current_player), format_point(point_to_coord(result[0], self.board.size)).lower()))
                 else:
@@ -463,6 +464,7 @@ class GtpConnection:
     def solve_helper(self):
         result = self.tt.lookup(self.board.board)
         if result != None:
+            self.tt.use += 1
             if len(result) > 0:
                 return True
             else:
